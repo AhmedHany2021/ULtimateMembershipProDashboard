@@ -9,12 +9,13 @@ class DataTableClass extends Datatable
     {
         parent::__construct();
         remove_action('wp_ajax_ihc_ajax_dt_get_members', [ Datatable::class, 'getMembers'] , 99);
-        add_action('wp_ajax_ihc_ajax_dt_get_members', [ $this, 'getMembers'] , 100);
+        add_action('wp_ajax_ihc_ajax_dt_get_members', [ $this, 'getMembers'] , 1);
     }
 
     public function getMembers()
     {
         return false;
+        die();
         // input : start, length, search[value], order[i][column], columns[i][orderable]
         // order by
         $ascOrDesc = '';
