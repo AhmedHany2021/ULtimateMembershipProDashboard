@@ -53,6 +53,25 @@ if (isset($_REQUEST['ihc-edit-user']) || isset($_REQUEST['ihc-new-user'])){
 
 
     ?>
+
+    <span class="ihc-js-admin-messages"
+          data-delete_user="<?php esc_html_e( 'Are you sure that you want to remove this Member?', 'ihc' );?>"
+          data-delete_level="<?php esc_html_e( 'Are you sure that you want to remove this Membership?', 'ihc' );?>"
+          data-delete_transaction="<?php esc_html_e( 'Are you sure that you want to remove this Transaction?', 'ihc' );?>"
+          data-delete_item="<?php esc_html_e( 'Are you sure that you want to remove this Item?', 'ihc' );?>"
+          data-delete_items="<?php esc_html_e( 'Are you sure that you want to remove selected Items?', 'ihc' );?>"
+          data-delete_order="<?php esc_html_e( 'Are you sure that you want to remove this Order?', 'ihc' );?>"
+          data-hold='<?php esc_html_e('Hold');?>'
+          data-expired='<?php esc_html_e( 'Expired', 'ihc' );?>'
+          data-active='<?php esc_html_e( 'Active', 'ihc');?>'
+          data-show_more='<?php esc_html_e( 'Show More', 'ihc' );?>'
+          data-show_less='<?php esc_html_e( 'Show Less', 'ihc' );?>'
+          data-search_cats='<?php esc_html_e('Search Categories', 'ihc');?>'
+          data-search_products='<?php esc_html_e('Search Products', 'ihc');?>'
+          data-email_server_check="<?php esc_html_e('An Email was sent to your Admin address. Check your inbox or Spam/Junk Folder!', 'ihc');?>"
+          data-confirm_label="<?php esc_html_e('Ok', 'ihc');?>"
+    ></span>
+
     <div class="ihc-stuffbox ihc-add-new-user-wrapper">
         <h3><?php esc_html_e('Add/Update Membership Members', 'ihc');?></h3>
         <div class="inside">
