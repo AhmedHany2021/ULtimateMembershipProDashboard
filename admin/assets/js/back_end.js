@@ -429,7 +429,7 @@ function ihcDhSelector(id, display){
 
 function ihcDeleteUserPrompot(i){
 		ihcSwal({
-			title: jQuery('.ihc-js-admin-messages').attr('data-delete_user'),
+			title: "You really want to delete this user?",
 			text: "",
 			type: "warning",
 			showCancelButton: true,
