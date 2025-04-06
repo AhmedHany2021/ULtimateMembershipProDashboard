@@ -14,6 +14,7 @@ class DataTableClass extends Datatable
 
     public function getMembers()
     {
+        return false;
         // input : start, length, search[value], order[i][column], columns[i][orderable]
         // order by
         $ascOrDesc = '';

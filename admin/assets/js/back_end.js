@@ -2730,7 +2730,7 @@ jQuery(window).on('load', function(){
 												window.location.href = responseObject.redirect_uri;
 										} else {
 												// something went wrong
-												jQuery('#iump_admin_cc_message_box').attr('class', 'ihc-error-global-dashboard-message').html( responseObject.message );
+												// jQuery('#iump_admin_cc_message_box').attr('class', 'ihc-error-global-dashboard-message').html( responseObject.message );
 										}
 								}
 					});
