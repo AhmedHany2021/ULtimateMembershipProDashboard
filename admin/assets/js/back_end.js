@@ -3334,48 +3334,62 @@ jQuery(function () {
 
 jQuery.ajaxSetup({
     headers: {
-        "X-CSRF-UMP-ADMIN-TOKEN": jQuery('meta[name="ump-admin-token"]').attr("content")
+        "X-CSRF-UMP-ADMIN-TOKEN": jQuery('meta[name="ump-admin-token"]').attr("content"),
     }
 });
 
-jQuery(document).ready(function ($) {
-    function sendOrderAction(actionType, orderId, userId, nonce) {
-        if (!confirm("Are you sure?")) return;
+document.addEventListener("DOMContentLoaded", function () {
+    jQuery(function ($) {
+        function sendOrderAction(actionType, orderId, userId, nonce) {
+            if (!confirm("Are you sure?")) return;
 
-        $.ajax({
-            url: ajaxurl,
-            type: "POST",
-            data: {
-                action: actionType,
-                order_id: orderId,
-                user_id: userId,
-                nonce: nonce
-            },
-            success: function (response) {
-                if (response.success) {
-                    alert(response.data.message);
-                    location.reload();
-                } else {
-                    alert("Error: " + (response.data?.message || "Something went wrong."));
+            $.ajax({
+                url: window.ajaxurl || '/wp-admin/admin-ajax.php', // fallback if ajaxurl isn't defined
+                type: "POST",
+                data: {
+                    action: actionType,
+                    order_id: orderId,
+                    user_id: userId,
+                    nonce: nonce
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.data.message);
+                        location.reload();
+                    } else {
+                        alert("Error: " + (response.data?.message || "Something went wrong."));
+                    }
+                },
+                error: function () {
+                    alert("AJAX request failed.");
                 }
-            },
-            error: function () {
-                alert("Request failed.");
-            }
+            });
+        }
+        $(document).on("click", ".cancel-order-button", function (e) {
+            e.preventDefault();
+            const wrapper = $(this).closest(".btn-group");
+            sendOrderAction(
+                "ihc_cancel_order",
+                wrapper.data("order-id"),
+                wrapper.data("user-id"),
+                wrapper.data("nonce")
+            );
         });
-    }
 
-    $(".capture-order-button").on("click", function (e) {
-        e.preventDefault();
-        const wrapper = $(this).closest('.btn-group');
-        sendOrderAction('ihc_capture_order', wrapper.data("order-id"), wrapper.data("user-id"), wrapper.data("nonce"));
-    });
+        $(document).on("click", ".capture-order-button", function (e) {
+            e.preventDefault();
+            const wrapper = $(this).closest(".btn-group");
+            sendOrderAction(
+                "ihc_capture_order",
+                wrapper.data("order-id"),
+                wrapper.data("user-id"),
+                wrapper.data("nonce")
+            );
+        });
 
-    $(".cancel-order-button").on("click", function (e) {
-        e.preventDefault();
-        const wrapper = $(this).closest('.btn-group');
-        sendOrderAction('ihc_cancel_order', wrapper.data("order-id"), wrapper.data("user-id"), wrapper.data("nonce"));
     });
 });
+
+
 
 

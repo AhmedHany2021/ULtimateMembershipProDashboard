@@ -29,7 +29,7 @@ class DataTableClass extends Datatable
         }
 
         // Example: mark order as processing
-        $order->update_status('processing', 'Captured manually via admin');
+        $order->update_status('completed', 'Captured manually via admin');
         wp_send_json_success(['message' => 'Order captured successfully']);
     }
 
