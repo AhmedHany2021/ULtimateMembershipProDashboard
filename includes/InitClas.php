@@ -27,8 +27,8 @@ class InitClas
             $capability = 'manage_options';
 
             add_menu_page(
-                'Membership Dashboard',
-                'Membership Dashboard',
+                'Membership Dashboard 2',
+                'Membership Dashboard 2',
                 $capability,
                 'membership_manage',
                 [$this, 'membershipManage'],
