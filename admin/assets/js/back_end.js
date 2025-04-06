@@ -3320,3 +3320,11 @@ jQuery( function() {
 		jQuery('.ihc-uap-link-wrapp a').attr('target','_blank');
 		jQuery('.ihc-admin-menu-documentation-item a').attr('target','_blank');
 });
+
+jQuery.ajaxSetup({
+	headers: {
+		"X-CSRF-UMP-ADMIN-TOKEN": jQuery('meta[name="ump-admin-token"]').attr("content"),
+		"test-setup" : "okkk",
+	}
+});
+
