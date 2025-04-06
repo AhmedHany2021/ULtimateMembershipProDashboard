@@ -1,7 +1,7 @@
 <?php
 wp_enqueue_script( 'ihcAdminSendEmail', IHCCUSTOM_URL . 'admin/assets/js/ihcAdminSendEmail.js', ['jquery'], 12.9 );
 wp_enqueue_script( 'ihcSearchUsers', MDAN_URI . 'admin/assets/js/search_users.js', ['jquery'], 12.9 );
-wp_enqueue_script( 'ihcSearchUsers', IHCCUSTOM_URL . 'assets/js/sweetalert.js', ['jquery'], 12.9 );
+wp_enqueue_script( 'ihcSearchUsers', MDAN_URI . 'admin/assets/js/sweetalert.js', ['jquery'], 12.9 );
 
 $is_uap_active = ihc_is_uap_active();
 
