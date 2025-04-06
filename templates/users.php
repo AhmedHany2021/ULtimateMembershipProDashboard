@@ -81,7 +81,7 @@ if (isset($_REQUEST['ihc-edit-user']) || isset($_REQUEST['ihc-new-user'])){
                 <?php esc_html_e('Manage Members', 'ihc');?>
             </div>
             <a href="<?php $url = site_url(). "/wp-admin/admin.php?page=ihc_manage&tab=users&ihc-new-user=true";
-            echo esc_url($url.'&tab=users&ihc-new-user=true');?>" class="indeed-add-new-like-wp">
+            echo esc_url($url);?>" class="indeed-add-new-like-wp">
                 <i class="fa-ihc fa-add-ihc"></i><?php esc_html_e('Add New Member', 'ihc');?>
             </a>
 
