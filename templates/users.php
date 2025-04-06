@@ -51,6 +51,8 @@ if (isset($_REQUEST['ihc-edit-user']) || isset($_REQUEST['ihc-new-user'])){
     }
     $form = $memberObject->form();
 
+    $url = site_url(). "/wp-admin/admin.php?page=ihc_manage&tab=users&ihc-new-user=true";
+
     ?>
     <div class="ihc-stuffbox ihc-add-new-user-wrapper">
         <h3><?php esc_html_e('Add/Update Membership Members', 'ihc');?></h3>
