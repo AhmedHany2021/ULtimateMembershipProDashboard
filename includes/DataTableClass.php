@@ -8,8 +8,8 @@ class DataTableClass extends Datatable
     public function __construct()
     {
         parent::__construct();
-        remove_action('wp_ajax_ihc_ajax_dt_get_members', [ Datatable::class, 'getMembers']);
-        add_action('wp_ajax_ihc_ajax_dt_get_members', [ $this, 'getMembers']);
+        remove_action('wp_ajax_ihc_ajax_dt_get_members', [ Datatable::class, 'getMembers'] , 99);
+        add_action('wp_ajax_ihc_ajax_dt_get_members', [ $this, 'getMembers'] , 100);
     }
 
     public function getMembers()

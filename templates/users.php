@@ -388,5 +388,5 @@ if (isset($_REQUEST['ihc-edit-user']) || isset($_REQUEST['ihc-new-user'])){
 ></span>
 <?php
 $nonce = wp_create_nonce( 'umpAdminNonce' );
-?>
 echo esc_ump_content("<meta name='ump-admin-token' content='$nonce'>");
+?>
