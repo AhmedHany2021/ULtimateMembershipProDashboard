@@ -3,7 +3,7 @@
 namespace MEMBERSHIPDASHBOARD\INCLUDES;
 
 use Indeed\Ihc\Admin\Datatable;
-use SearchUserClass;
+use MEMBERSHIPDASHBOARD\INCLUDES\SearchUserClass;
 
 class DataTableClass extends Datatable
 {
