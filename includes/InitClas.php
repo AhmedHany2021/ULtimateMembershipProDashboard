@@ -8,6 +8,7 @@ class InitClas
     {
         add_action ( 'admin_menu', [$this,'registerDashboardPages']);
         add_action('admin_enqueue_scripts',[$this,'addScripts']);
+        add_action('admin_init', [$this,'ump_register_renew_discount_settings']);
         remove_action( 'wp_ajax_ihc_return_csv_link', 'ihc_return_csv_link');
         add_action('wp_ajax_ihc_return_csv_link', [$this,'ihc_return_csv_link']);
     }
@@ -305,7 +306,68 @@ class InitClas
                 [$this, 'membershipManage'],
                 'dashicons-universal-access-alt'
             );
+
+            add_submenu_page(
+                'membership_manage',
+                'Renew Discount Settings',
+                'Renew Discount',
+                'manage_options',
+                'renew_discount_settings',
+                [$this , 'ump_renew_discount_settings_page']
+            );
         }
+    }
+
+    public function ump_renew_discount_settings_page() {
+        ?>
+        <div class="wrap">
+            <h1>Renewal Discount Settings</h1>
+            <form method="post" action="options.php">
+                <?php
+                settings_fields('renew_discount_settings_group'); // Settings group for saving
+                do_settings_sections('renew_discount_settings'); // Add sections for settings
+
+                // Fetch current settings from the database
+                $discount_type = get_option('renew_discount_type', 'percentage'); // Default to 'percentage'
+                $discount_value = get_option('renew_discount_value', 10); // Default to 10%
+                ?>
+
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">Discount Type</th>
+                        <td>
+                            <select name="renew_discount_type">
+                                <option value="percentage" <?php selected($discount_type, 'percentage'); ?>>Percentage</option>
+                                <option value="amount" <?php selected($discount_type, 'amount'); ?>>Amount</option>
+                            </select>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Discount Value</th>
+                        <td>
+                            <input type="number" name="renew_discount_value" value="<?php echo esc_attr($discount_value); ?>" step="0.01" min="0" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Activate Discount</th>
+                        <td>
+                            <input type="checkbox" name="renew_discount_active" value="1" <?php checked(get_option('renew_discount_active', 0), 1); ?> />
+                        </td>
+                    </tr>
+                </table>
+
+                <?php submit_button(); ?>
+            </form>
+        </div>
+        <?php
+    }
+
+    public function ump_register_renew_discount_settings() {
+        register_setting('renew_discount_settings_group', 'renew_discount_type');
+        register_setting('renew_discount_settings_group', 'renew_discount_value');
+        register_setting('renew_discount_settings_group', 'renew_discount_active');
     }
 
     public function membershipManage()
