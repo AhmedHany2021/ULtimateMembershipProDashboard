@@ -10,7 +10,6 @@ class DataTableClass extends Datatable
         parent::__construct();
         remove_action('wp_ajax_ihc_ajax_dt_get_members', [ Datatable::class, 'getMembers']);
         add_action('wp_ajax_ihc_ajax_dt_get_members', [ $this, 'getMembers']);
-        remove_action( 'wp_ajax_ihc_return_csv_link', 'ihc_return_csv_link');
 
     }
 

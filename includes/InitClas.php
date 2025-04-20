@@ -8,6 +8,7 @@ class InitClas
     {
         add_action ( 'admin_menu', [$this,'registerDashboardPages']);
         add_action('admin_enqueue_scripts',[$this,'addScripts']);
+        remove_action( 'wp_ajax_ihc_return_csv_link', 'ihc_return_csv_link');
     }
 
     public function addScripts()
