@@ -4,7 +4,7 @@ class CheckoutHandleClass
 {
     public function __construct()
     {
-        add_action('woocommerce_before_checkout_process', 'ump_force_existing_plan_checkout');
+        add_action('woocommerce_before_checkout_process', [$this,'ump_force_existing_plan_checkout']);
     }
 
     public function ump_force_existing_plan_checkout() {
