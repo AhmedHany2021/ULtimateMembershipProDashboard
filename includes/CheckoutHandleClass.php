@@ -1,4 +1,5 @@
 <?php
+namespace MEMBERSHIPDASHBOARD\INCLUDES;
 
 class CheckoutHandleClass
 {
@@ -19,7 +20,6 @@ class CheckoutHandleClass
         // Use IHC method to get the associated WooCommerce product ID
         $product_id = \Ihc_Db::get_woo_product_id_for_lid($plan_id);
         if (empty($product_id)) return;
-
         // Check the cart for mismatching products
         $cart_modified = false;
         foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {

@@ -14,6 +14,7 @@ namespace MEMBERSHIPDASHBOARD;
 use MEMBERSHIPDASHBOARD\INCLUDES\autoload;
 use MEMBERSHIPDASHBOARD\INCLUDES\DataTableClass;
 use MEMBERSHIPDASHBOARD\INCLUDES\InitClas;
+use MEMBERSHIPDASHBOARD\INCLUDES\CheckoutHandleClass;
 
 if (!defined('ABSPATH'))
 {
@@ -39,6 +40,7 @@ try {
     add_action('plugins_loaded', function() {
         if (is_plugin_active('indeed-membership-pro/indeed-membership-pro.php')) {
             new InitClas();
+            new CheckoutHandleClass();
         }
     });
     new DataTableClass();
