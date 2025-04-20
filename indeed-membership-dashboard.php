@@ -6,7 +6,7 @@ Description: this plugin add new dashboard for membership
 Author: Ahmed Hany
 Version: 1.1.0
 Author URI: https://github.com/AhmedHany2021
-GitHub Plugin URI: https://github.com/AhmedHany2021/ULtimateMembershipProDashboard
+GitHub Plugin URI: https://github.com/AhmedHany2021
 */
 
 namespace MEMBERSHIPDASHBOARD;
