@@ -384,10 +384,11 @@ class SearchUserClass
                         $query .= " IFNULL( UNIX_TIMESTAMP( ul.expire_time ), 0 )=0 ";
                         break;
                     case 'expire_soon':
-                        $query .= "WHERE 
-                                    UNIX_TIMESTAMP(ul.expire_time) > UNIX_TIMESTAMP(NOW())
-                                    AND UNIX_TIMESTAMP(ul.expire_time) <= UNIX_TIMESTAMP(NOW() + INTERVAL 30 DAY)
-                                    AND UNIX_TIMESTAMP(ul.start_time) <= UNIX_TIMESTAMP(NOW())
+                        $query .= "IFNULL(UNIX_TIMESTAMP(ul.expire_time), 0) > UNIX_TIMESTAMP(NOW())
+AND IFNULL(UNIX_TIMESTAMP(ul.start_time), 0) < UNIX_TIMESTAMP(NOW())
+AND (
+  IFNULL(UNIX_TIMESTAMP(ul.expire_time), 0) <= UNIX_TIMESTAMP(NOW() + INTERVAL 30 DAY)
+)
 
                                     ";
                         break;
