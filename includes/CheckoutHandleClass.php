@@ -32,6 +32,12 @@ class CheckoutHandleClass
             }
         }
 
+
+        if ($cart_modified) {
+            WC()->cart->add_to_cart($product_id);
+            wc_add_notice(__('Your cart has been updated to match your current membership plan.'), 'notice');
+        }
+
         $discount_type = get_option('renew_discount_type', 'percentage');
         $discount_value = get_option('renew_discount_value', 10);
         $discount_active = get_option('renew_discount_active', 0);
@@ -56,10 +62,6 @@ class CheckoutHandleClass
                     WC()->cart->cart_contents[$cart_item_key]['data']->set_price($new_price);
                 }
             }
-        }
-        if ($cart_modified) {
-            WC()->cart->add_to_cart($product_id);
-            wc_add_notice(__('Your cart has been updated to match your current membership plan.'), 'notice');
         }
     }
 
