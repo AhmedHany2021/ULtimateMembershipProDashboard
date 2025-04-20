@@ -3,6 +3,8 @@
 namespace MEMBERSHIPDASHBOARD\INCLUDES;
 
 use Indeed\Ihc\Admin\Datatable;
+use SearchUserClass;
+
 class DataTableClass extends Datatable
 {
     public function __construct()
@@ -65,7 +67,7 @@ class DataTableClass extends Datatable
             $params['extra_conditions'] = indeed_sanitize_array( $_POST['extra_conditions'] );
         }
 
-        $users = new \Indeed\Ihc\Db\SearchUsers();
+        $users = new SearchUserClass();
         $users->setLimit( $params['limit'] )
             ->setOffset( $params['offset'] )
             ->setOrder( $params['order'] );
