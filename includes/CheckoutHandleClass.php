@@ -8,7 +8,7 @@ class CheckoutHandleClass
     {
         add_action('woocommerce_checkout_update_order_review', [$this, 'ump_force_existing_plan_checkout']);
         add_action('woocommerce_checkout_create_order_line_item', [$this, 'ump_force_existing_plan_checkout_cart'], 10, 4);
-        add_action('woocommerce_checkout_create_order', function ($order, $data) {
+        add_action('woocommerce_checkout_order_created', function ($order, $data) {
             $order->calculate_totals();
         }, 20, 2);
     }
@@ -37,10 +37,12 @@ class CheckoutHandleClass
 
         $new_price = max(0, $original_price - $discount_amount);
 
-        // Set prices on the order item
+        // Forcefully update all price fields
         $item->set_subtotal($new_price);
         $item->set_total($new_price);
-
+        $item->set_subtotal_tax(0);  // if tax isn't recalculated
+        $item->set_total_tax(0);
+        $item->set_taxes(['total' => [], 'subtotal' => []]);  // Reset tax array if needed
     }
 
     public function ump_force_existing_plan_checkout()
