@@ -8,10 +8,12 @@ class CheckoutHandleClass
     {
         add_action('woocommerce_checkout_update_order_review', [$this, 'ump_force_existing_plan_checkout']);
         add_action('woocommerce_checkout_create_order_line_item', [$this, 'ump_force_existing_plan_checkout_cart'], 10, 4);
+        add_action('woocommerce_checkout_create_order', function ($order, $data) {
+            $order->calculate_totals();
+        }, 20, 2);
     }
 
-    public function ump_force_existing_plan_checkout_cart($item, $cart_item_key, $values, $order)
-    {
+    public function ump_force_existing_plan_checkout_cart($item, $cart_item_key, $values, $order) {
         $userID = get_current_user_id();
         $plan_id = \Indeed\Ihc\UserSubscriptions::getAllForUser($userID, false);
         $plan_id = array_key_first($plan_id);
@@ -29,16 +31,16 @@ class CheckoutHandleClass
         $product = wc_get_product($product_id);
         $original_price = $product->get_price();
 
-        // Calculate discount
         $discount_amount = ($discount_type === 'percentage')
             ? ($original_price * $discount_value) / 100
             : $discount_value;
 
         $new_price = max(0, $original_price - $discount_amount);
 
-        // Apply to order item
+        // Set prices on the order item
         $item->set_subtotal($new_price);
         $item->set_total($new_price);
+
     }
 
     public function ump_force_existing_plan_checkout()
