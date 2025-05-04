@@ -1,11 +1,44 @@
 <?php
+
 namespace MEMBERSHIPDASHBOARD\INCLUDES;
 
 class CheckoutHandleClass
 {
     public function __construct()
     {
-        add_action('woocommerce_checkout_update_order_review', [$this,'ump_force_existing_plan_checkout']);
+        add_action('woocommerce_checkout_update_order_review', [$this, 'ump_force_existing_plan_checkout']);
+        add_action('woocommerce_checkout_create_order_line_item', [$this, 'ump_force_existing_plan_checkout_cart'], 10, 4);
+    }
+
+    public function ump_force_existing_plan_checkout_cart($item, $cart_item_key, $values, $order)
+    {
+        $userID = get_current_user_id();
+        $plan_id = \Indeed\Ihc\UserSubscriptions::getAllForUser($userID, false);
+        $plan_id = array_key_first($plan_id);
+
+        if (empty($plan_id)) return;
+
+        $product_id = \Ihc_Db::get_woo_product_id_for_lid($plan_id);
+        if ((int)$values['product_id'] !== (int)$product_id) return;
+
+        $discount_type = get_option('renew_discount_type', 'percentage');
+        $discount_value = get_option('renew_discount_value', 10);
+        $discount_active = get_option('renew_discount_active', 0);
+        if (!$discount_active) return;
+
+        $product = wc_get_product($product_id);
+        $original_price = $product->get_price();
+
+        // Calculate discount
+        $discount_amount = ($discount_type === 'percentage')
+            ? ($original_price * $discount_value) / 100
+            : $discount_value;
+
+        $new_price = max(0, $original_price - $discount_amount);
+
+        // Apply to order item
+        $item->set_subtotal($new_price);
+        $item->set_total($new_price);
     }
 
     public function ump_force_existing_plan_checkout()
