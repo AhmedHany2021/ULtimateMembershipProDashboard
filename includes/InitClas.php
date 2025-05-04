@@ -6,30 +6,30 @@ class InitClas
 {
     public function __construct()
     {
-        add_action ( 'admin_menu', [$this,'registerDashboardPages']);
-        add_action('admin_enqueue_scripts',[$this,'addScripts']);
-        add_action('admin_init', [$this,'ump_register_renew_discount_settings']);
-        remove_action( 'wp_ajax_ihc_return_csv_link', 'ihc_return_csv_link');
-        add_action('wp_ajax_ihc_return_csv_link', [$this,'ihc_return_csv_link']);
+        add_action('admin_menu', [$this, 'registerDashboardPages']);
+        add_action('admin_enqueue_scripts', [$this, 'addScripts']);
+        add_action('admin_init', [$this, 'ump_register_renew_discount_settings']);
+        remove_action('wp_ajax_ihc_return_csv_link', 'ihc_return_csv_link');
+        add_action('wp_ajax_ihc_return_csv_link', [$this, 'ihc_return_csv_link']);
     }
 
     public function ihc_return_csv_link()
     {
-        if ( !ihcIsAdmin() ){
+        if (!ihcIsAdmin()) {
             echo 0;
             die;
         }
-        if ( !ihcAdminVerifyNonce() ){
+        if (!ihcAdminVerifyNonce()) {
             echo 0;
             die;
         }
 
-        if ( isset($_POST['filters']) ){
-            $attributes = json_decode( stripslashes( sanitize_text_field( $_POST['filters'] ) ), true );
+        if (isset($_POST['filters'])) {
+            $attributes = json_decode(stripslashes(sanitize_text_field($_POST['filters'])), true);
         } else {
             $attributes = [];
         }
-        echo $this->ihc_make_csv_user_list( $attributes );
+        echo $this->ihc_make_csv_user_list($attributes);
         die;
     }
 
@@ -46,6 +46,7 @@ class InitClas
         );
         return $wpdb->get_var($query);
     }
+
     private function ihc_make_csv_user_list($attributes = [])
     {
         global $wpdb;
@@ -72,7 +73,7 @@ class InitClas
             ->setOffset(0)
             ->setLid(-1);
         if ($applyFilters) {
-            $limit = (isset($attributes['ihc_limit'])) ? $attributes['ihc_limit'] : 25;
+            $limit = (isset($attributes['ihc_limit'])) ? $attributes['ihc_limit'] : 500;
             $start = 0;
             if (isset($attributes['ihcdu_page'])) {
                 $pg = $attributes['ihcdu_page'] - 1;
@@ -171,111 +172,58 @@ class InitClas
             $query .= " FROM {$wpdb->usermeta} ";
 
             $reg = null;
-            foreach ($users as $user) {
 
-                $the_user_data[] = $user->ID;
+            foreach ($register_fields as $v) {
+                if ($bef != $v['label']) {
+                    $field_value = '';
+                    $raw_value = isset($userMetaArray[$v['name']]) ? $userMetaArray[$v['name']] : '';
 
-                $userQuery = $query . $wpdb->prepare(" WHERE user_id=%d", $user->ID);
-                $userMetaArray = $wpdb->get_row($userQuery, ARRAY_A);
-                $bef = "";
-                foreach ($register_fields as $v) {
-                    if ($bef != $v['label']) {
-                        if (isset($user->{$v['name']})) {
-                            $the_user_data[] = $user->{$v['name']};
-                        } else {
-                            if (isset($userMetaArray[$v['name']]) && $userMetaArray[$v['name']] !== FALSE) {
-                                if (is_array($userMetaArray[$v['name']])) {
-                                    $the_user_data[] = implode(",", $userMetaArray[$v['name']]);
+                    if ($raw_value !== '') {
+                        $ihc_fields = get_option('ihc_user_fields');
+                        foreach ($ihc_fields as $ihc_field) {
+                            if ($ihc_field['label'] !== $v['label']) {
+                                continue;
+                            }
+
+                            $has_condition = !empty($ihc_field['conditional_logic_corresp_field']) &&
+                                $ihc_field['conditional_logic_corresp_field'] !== -1;
+
+                            if ($has_condition) {
+                                $control_field = $ihc_field['conditional_logic_corresp_field'];
+                                $expected_value = $ihc_field['conditional_logic_corresp_field_value'];
+                                $expected_value_en = $this->get_wpml_original_text_en($expected_value);
+
+                                $user_value = isset($userMetaArray[$control_field]) ? $userMetaArray[$control_field] : '';
+
+                                // Handle WPML compatibility
+                                $user_value_en = $this->get_wpml_original_text_en($user_value);
+
+                                if ($user_value == $expected_value || $user_value_en == $expected_value_en) {
+                                    $field_value = $raw_value;
                                 } else {
-                                    $needed_v = "";
-                                    $ihc_f = get_option('ihc_user_fields');
-                                    foreach ($ihc_f as $k => $ihc) {
-                                        if ($ihc_f[$k]['label'] == $v['label']) {
-                                            if ($ihc_f[$k]['conditional_logic_corresp_field'] != -1 && $ihc_f[$k]['conditional_logic_corresp_field'] != false) {
-                                                $getter = $ihc_f[$k]['conditional_logic_corresp_field'];
-                                                // $origional_data = get_wpml_original_text_en($userMetaArray[$getter]);
-                                                if ($ihc_f[$k]['conditional_logic_corresp_field_value'] == $userMetaArray[$getter]) {
-                                                    $needed_v = $userMetaArray[$ihc_f[$k]['name']];
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if ($needed_v != "") {
-                                        $the_user_data[] = $needed_v;
-                                    } else {
-                                        $the_user_data[] = $userMetaArray[$v['name']];
-                                    }
+                                    // Skip this field due to unmet condition
+                                    $field_value = '';
                                 }
                             } else {
-                                $the_user_data[] = ' ';
+                                $field_value = $raw_value;
                             }
+
+                            break; // Exit the loop once the matching field is found
                         }
+
+                        // Convert arrays to comma-separated strings
+                        if (is_array($field_value)) {
+                            $field_value = implode(', ', $field_value);
+                        }
+
+                        $the_user_data[] = $field_value !== '' ? $field_value : ' ';
+                    } else {
+                        $the_user_data[] = ' ';
                     }
-                    $bef = $v['label'];
                 }
 
-                $levels = array();
-                if ($user->levels && stripos($user->levels, ',') !== false) {
-                    $levels = explode(',', $user->levels);
-                } else {
-                    $levels[] = $user->levels;
-                }
-
-                if ($levels) {
-                    /// with levels
-                    foreach ($levels as $level_data) {
-                        if ($level_data == -1) {
-                            /// NO LEVELS
-                            $data = $the_user_data;
-                            $data[] = '-'; /// Membership ID
-                            $data[] = '-'; /// Membership
-                            $data[] = '-'; /// start TIME
-                            $data[] = '-'; /// Expire TIME
-                            $data[] = $user->roles;
-                            $data[] = $user->user_registered;
-                            fputcsv($file_resource, $data, ",");
-                            unset($data);
-                            continue;
-                        }
-                        if (strpos($level_data, '|') !== false) {
-                            $levelDataArray = explode('|', $level_data);
-                        } else {
-                            $levelDataArray = array();
-                        }
-
-                        $lid = isset($levelDataArray[0]) ? $levelDataArray[0] : '';
-                        $level_data = array(
-                            'level_id' => $lid,
-                            'start_time' => isset($levelDataArray[1]) ? $levelDataArray[1] : '',
-                            'expire_time' => isset($levelDataArray[2]) ? $levelDataArray[2] : '',
-                            'level_slug' => isset($levelDetails[$lid]['slug']) ? $levelDetails[$lid]['slug'] : '',
-                            'label' => isset($levelDetails[$lid]['label']) ? $levelDetails[$lid]['label'] : '',
-                        );
-
-                        $data = $the_user_data;
-                        $data[] = $level_data['level_id']; /// Membership ID
-                        $data[] = $level_data['label']; /// Membership
-                        $data[] = $level_data['start_time']; /// start TIME
-                        $data[] = $level_data['expire_time']; /// Expire TIME
-                        $data[] = $user->roles;
-                        $data[] = $user->user_registered;
-                        fputcsv($file_resource, $data, ",");
-                        unset($data);
-                    }
-                } else {
-                /// NO LEVELS
-                    $data = $the_user_data;
-                    $data[] = '-'; /// Membership ID
-                    $data[] = '-'; /// Membership
-                    $data[] = '-'; /// start TIME
-                    $data[] = '-'; /// Expire TIME
-                    $data[] = $user->roles;
-                    $data[] = $user->user_registered;
-                    fputcsv($file_resource, $data, ",");
-                    unset($data);
-                }
-                unset($the_user_data);
-            } /// end of foreach  users
+                $bef = $v['label'];
+            }
             fclose($file_resource);
             return $file_link;
         }
@@ -284,17 +232,16 @@ class InitClas
 
     public function addScripts()
     {
-        if ( is_admin() ) {
-            wp_enqueue_script( 'custom_ihc-back_end', MDAN_URI . 'admin/assets/js/back_end.js', [ 'jquery' ], '12.9', true );
+        if (is_admin()) {
+            wp_enqueue_script('custom_ihc-back_end', MDAN_URI . 'admin/assets/js/back_end.js', ['jquery'], '12.9', true);
         }
     }
 
 
     public function registerDashboardPages()
     {
-        $access = current_user_can( 'manage_options' );
-        if ( $access )
-        {
+        $access = current_user_can('manage_options');
+        if ($access) {
 
             $capability = 'manage_options';
 
@@ -313,12 +260,13 @@ class InitClas
                 'Renew Discount',
                 'manage_options',
                 'renew_discount_settings',
-                [$this , 'ump_renew_discount_settings_page']
+                [$this, 'ump_renew_discount_settings_page']
             );
         }
     }
 
-    public function ump_renew_discount_settings_page() {
+    public function ump_renew_discount_settings_page()
+    {
         ?>
         <div class="wrap">
             <h1>Renewal Discount Settings</h1>
@@ -337,7 +285,8 @@ class InitClas
                         <th scope="row">Discount Type</th>
                         <td>
                             <select name="renew_discount_type">
-                                <option value="percentage" <?php selected($discount_type, 'percentage'); ?>>Percentage</option>
+                                <option value="percentage" <?php selected($discount_type, 'percentage'); ?>>Percentage
+                                </option>
                                 <option value="amount" <?php selected($discount_type, 'amount'); ?>>Amount</option>
                             </select>
                         </td>
@@ -346,14 +295,16 @@ class InitClas
                     <tr>
                         <th scope="row">Discount Value</th>
                         <td>
-                            <input type="number" name="renew_discount_value" value="<?php echo esc_attr($discount_value); ?>" step="0.01" min="0" />
+                            <input type="number" name="renew_discount_value"
+                                   value="<?php echo esc_attr($discount_value); ?>" step="0.01" min="0"/>
                         </td>
                     </tr>
 
                     <tr>
                         <th scope="row">Activate Discount</th>
                         <td>
-                            <input type="checkbox" name="renew_discount_active" value="1" <?php checked(get_option('renew_discount_active', 0), 1); ?> />
+                            <input type="checkbox" name="renew_discount_active"
+                                   value="1" <?php checked(get_option('renew_discount_active', 0), 1); ?> />
                         </td>
                     </tr>
                 </table>
@@ -364,7 +315,8 @@ class InitClas
         <?php
     }
 
-    public function ump_register_renew_discount_settings() {
+    public function ump_register_renew_discount_settings()
+    {
         register_setting('renew_discount_settings_group', 'renew_discount_type');
         register_setting('renew_discount_settings_group', 'renew_discount_value');
         register_setting('renew_discount_settings_group', 'renew_discount_active');
@@ -372,12 +324,9 @@ class InitClas
 
     public function membershipManage()
     {
-        if(isset($_GET['tab']) && $_GET['tab'] === 'user-details' && isset($_GET['uid']))
-        {
+        if (isset($_GET['tab']) && $_GET['tab'] === 'user-details' && isset($_GET['uid'])) {
             require_once MDAN_TEMPLATES . 'user-details.php';
-        }
-        else
-        {
+        } else {
             require_once MDAN_TEMPLATES . 'users.php';
         }
     }

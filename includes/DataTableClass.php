@@ -48,7 +48,7 @@ class DataTableClass extends Datatable
             wp_send_json_error(['message' => 'Invalid order']);
         }
 
-        $order->update_status('cancelled', 'Cancelled manually via admin');
+        $order->update_status('refunded', 'Cancelled manually via admin');
         wp_send_json_success(['message' => 'Order cancelled successfully']);
     }
 
