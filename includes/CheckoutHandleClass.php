@@ -38,6 +38,7 @@ class CheckoutHandleClass
 
         $order->calculate_totals();
         $order->save();
+        update_user_meta($userID, 'membership-discount', 0);
     }
 
     public function ump_force_existing_plan_checkout_cart($item, $cart_item_key, $values, $order) {
@@ -105,11 +106,8 @@ class CheckoutHandleClass
         $discount_amount =  get_user_meta($userID, 'membership-discount', true);
 
         if ($discount_amount && $discount_amount > 0) {
-            // Get the product object
             $product = wc_get_product($product_id);
             $original_price = $product->get_price();
-
-            // Apply the discount to the product
             $new_price = $original_price - $discount_amount;
 
             // Set the discounted price for the cart item
