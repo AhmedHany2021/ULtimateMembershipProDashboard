@@ -31,10 +31,18 @@ $userFields = ihc_get_user_reg_fields();
 
 
 if (!empty($_POST['ihc_update_discount_nonce']) && wp_verify_nonce($_POST['ihc_update_discount_nonce'], 'ihc_update_discount')) {
-    if (current_user_can('manage_options')) {
+    if (current_user_can('manage_options'))
+    {
         $new_discount = sanitize_text_field($_POST['membership_discount']);
-        update_user_meta($uid, 'membership-discount', $new_discount);
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Discount updated successfully.', 'ihc') . '</p></div>';
+        if (ctype_digit($new_discount))
+        {
+            update_user_meta($uid, 'membership-discount', (int)$new_discount);
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Discount updated successfully.', 'ihc') . '</p></div>';
+        }
+        else
+        {
+            echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__('Please enter a valid unsigned integer for discount.', 'ihc') . '</p></div>';
+        }
     }
 }
 
@@ -585,7 +593,7 @@ function get_wpml_original_text($translated_text, $context = 'admin_texts_ihc_us
                                 <th><label for="membership_discount"><?php esc_html_e('Discount Value', 'ihc'); ?></label></th>
                                 <td>
                                     <input type="text" name="membership_discount" id="membership_discount" value="<?php echo esc_attr($current_discount); ?>" class="regular-text" />
-                                    <p class="description"><?php esc_html_e('Enter a discount value (e.g. 10% or 20).', 'ihc'); ?></p>
+                                    <p class="description"><?php esc_html_e('Enter a discount value.', 'ihc'); ?></p>
                                 </td>
                             </tr>
                         </table>

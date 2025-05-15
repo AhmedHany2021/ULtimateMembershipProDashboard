@@ -23,17 +23,11 @@ class CheckoutHandleClass
         $product_id = \Ihc_Db::get_woo_product_id_for_lid($plan_id);
         if (!$product_id) return;
 
-        $discount_type = get_option('renew_discount_type', 'percentage');
-        $discount_value = get_option('renew_discount_value', 10);
-        $discount_active = get_option('renew_discount_active', 0);
-        if (!$discount_active) return;
+        $discount_amount =  get_user_meta($userID, 'membership-discount', true);
+        if (!$discount_amount || $discount_amount <= 0) return;
 
         $product = wc_get_product($product_id);
         $original_price = $product->get_price();
-
-        $discount_amount = ($discount_type === 'percentage')
-            ? ($original_price * $discount_value) / 100
-            : $discount_value;
 
         $item = new \WC_Order_Item_Fee();
         $item->set_name(__('Renewal Discount', 'your-textdomain'));
@@ -108,20 +102,12 @@ class CheckoutHandleClass
             wc_add_notice(__('Your cart has been updated to match your current membership plan.'), 'notice');
         }
 
-        $discount_type = get_option('renew_discount_type', 'percentage');
-        $discount_value = get_option('renew_discount_value', 10);
-        $discount_active = get_option('renew_discount_active', 0);
-        if ($discount_active) {
+        $discount_amount =  get_user_meta($userID, 'membership-discount', true);
+
+        if ($discount_amount && $discount_amount > 0) {
             // Get the product object
             $product = wc_get_product($product_id);
             $original_price = $product->get_price();
-
-            // Calculate the discount
-            if ($discount_type == 'percentage') {
-                $discount_amount = ($original_price * $discount_value) / 100;
-            } else {
-                $discount_amount = $discount_value; // Fixed amount discount
-            }
 
             // Apply the discount to the product
             $new_price = $original_price - $discount_amount;
