@@ -7,12 +7,14 @@ class CheckoutHandleClass
     public function __construct()
     {
         add_action('woocommerce_checkout_update_order_review', [$this, 'ump_force_existing_plan_checkout']);
-        add_action('woocommerce_checkout_create_order_line_item', [$this, 'ump_force_existing_plan_checkout_cart'], 10, 4);
-        add_action('woocommerce_checkout_order_created',[$this , 'create_custom_discount'], 20, 2);
+        // add_action('woocommerce_checkout_create_order_line_item', [$this, 'ump_force_existing_plan_checkout_cart'], 10, 4);
+        add_action('woocommerce_checkout_order_created',[$this , 'create_custom_discount'], 30);
 
     }
 
-    public function create_custom_discount($order, $data) {
+    public function create_custom_discount($order)
+    {
+
         $userID = get_current_user_id();
         $plan_id = \Indeed\Ihc\UserSubscriptions::getAllForUser($userID, false);
         $plan_id = array_key_first($plan_id);
@@ -27,24 +29,21 @@ class CheckoutHandleClass
         if (!$discount_active) return;
 
         $product = wc_get_product($product_id);
-        if (!$product) return;
-
         $original_price = $product->get_price();
 
         $discount_amount = ($discount_type === 'percentage')
             ? ($original_price * $discount_value) / 100
             : $discount_value;
 
-        $discount_amount = max(0, $discount_amount);
-
-        $fee = new \WC_Order_Item_Fee();
-        $fee->set_name('Renewal Discount');
-        $fee->set_amount(-1 * $discount_amount);
-        $fee->set_total(-1 * $discount_amount);
-        $order->add_item($fee);
-        $fee->save(); // VERY IMPORTANT
+        $item = new \WC_Order_Item_Fee();
+        $item->set_name(__('Renewal Discount', 'your-textdomain'));
+        $item->set_amount(-1 * $discount_amount);
+        $item->set_total(-1 * $discount_amount);
+        $order->add_item($item);
+        $item->save(); // Important!
 
         $order->calculate_totals();
+        $order->save();
     }
 
     public function ump_force_existing_plan_checkout_cart($item, $cart_item_key, $values, $order) {

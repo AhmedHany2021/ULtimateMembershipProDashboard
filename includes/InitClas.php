@@ -73,7 +73,7 @@ class InitClas
             ->setOffset(0)
             ->setLid(-1);
         if ($applyFilters) {
-            $limit = (isset($attributes['ihc_limit'])) ? $attributes['ihc_limit'] : 500;
+            $limit = (isset($attributes['ihc_limit'])) ? $attributes['ihc_limit'] : 25;
             $start = 0;
             if (isset($attributes['ihcdu_page'])) {
                 $pg = $attributes['ihcdu_page'] - 1;
@@ -172,64 +172,110 @@ class InitClas
             $query .= " FROM {$wpdb->usermeta} ";
 
             $reg = null;
+            $all_csv_rows = [];
 
-            foreach ($register_fields as $v) {
-                if ($bef != $v['label']) {
-                    $field_value = '';
-                    $raw_value = isset($userMetaArray[$v['name']]) ? $userMetaArray[$v['name']] : '';
+            foreach ($users as $user) {
+                $the_user_data = [];
+                $the_user_data[] = $user->ID;
 
-                    if ($raw_value !== '') {
-                        $ihc_fields = get_option('ihc_user_fields');
-                        foreach ($ihc_fields as $ihc_field) {
-                            if ($ihc_field['label'] !== $v['label']) {
-                                continue;
-                            }
+                $userQuery = $query . $wpdb->prepare(" WHERE user_id=%d", $user->ID);
+                $userMetaArray = $wpdb->get_row($userQuery, ARRAY_A);
 
-                            $has_condition = !empty($ihc_field['conditional_logic_corresp_field']) &&
-                                $ihc_field['conditional_logic_corresp_field'] !== -1;
-
-                            if ($has_condition) {
-                                $control_field = $ihc_field['conditional_logic_corresp_field'];
-                                $expected_value = $ihc_field['conditional_logic_corresp_field_value'];
-                                $expected_value_en = $this->get_wpml_original_text_en($expected_value);
-
-                                $user_value = isset($userMetaArray[$control_field]) ? $userMetaArray[$control_field] : '';
-
-                                // Handle WPML compatibility
-                                $user_value_en = $this->get_wpml_original_text_en($user_value);
-
-                                if ($user_value == $expected_value || $user_value_en == $expected_value_en) {
-                                    $field_value = $raw_value;
+                $bef = "";
+                foreach ($register_fields as $v) {
+                    if ($bef != $v['label']) {
+                        if (isset($user->{$v['name']})) {
+                            $the_user_data[] = $user->{$v['name']};
+                        } else {
+                            if (isset($userMetaArray[$v['name']]) && $userMetaArray[$v['name']] !== FALSE) {
+                                if (is_array($userMetaArray[$v['name']])) {
+                                    $the_user_data[] = implode(",", $userMetaArray[$v['name']]);
                                 } else {
-                                    // Skip this field due to unmet condition
-                                    $field_value = '';
+                                    $needed_v = "";
+                                    $ihc_f = get_option('ihc_user_fields');
+                                    foreach ($ihc_f as $k => $ihc) {
+                                        if ($ihc_f[$k]['label'] == $v['label']) {
+                                            if ($ihc_f[$k]['conditional_logic_corresp_field'] != -1 && $ihc_f[$k]['conditional_logic_corresp_field'] != false) {
+                                                $getter = $ihc_f[$k]['conditional_logic_corresp_field'];
+                                                $region_value = $userMetaArray[$getter] ?? '';
+                                                $expected_value = $ihc_f[$k]['conditional_logic_corresp_field_value'];
+                                                $translated_region = $this->get_wpml_original_text_en($region_value);
+                                                if ($expected_value == $region_value || $expected_value == $translated_region) {
+                                                    $needed_v = $userMetaArray[$ihc_f[$k]['name']] ?? '';
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    $the_user_data[] = ($needed_v !== '') ? $needed_v : ($userMetaArray[$v['name']] ?? ' ');
                                 }
                             } else {
-                                $field_value = $raw_value;
+                                $the_user_data[] = ' ';
                             }
-
-                            break; // Exit the loop once the matching field is found
                         }
-
-                        // Convert arrays to comma-separated strings
-                        if (is_array($field_value)) {
-                            $field_value = implode(', ', $field_value);
-                        }
-
-                        $the_user_data[] = $field_value !== '' ? $field_value : ' ';
-                    } else {
-                        $the_user_data[] = ' ';
                     }
+                    $bef = $v['label'];
                 }
 
-                $bef = $v['label'];
+                $levels = [];
+                if ($user->levels && stripos($user->levels, ',') !== false) {
+                    $levels = explode(',', $user->levels);
+                } else {
+                    $levels[] = $user->levels;
+                }
+
+                if ($levels) {
+                    foreach ($levels as $level_data) {
+                        if ($level_data == -1) {
+                            $data = $the_user_data;
+                            $data[] = '-'; // Membership ID
+                            $data[] = '-'; // Membership
+                            $data[] = '-'; // Start time
+                            $data[] = '-'; // Expire time
+                            $data[] = $user->roles;
+                            $data[] = $user->user_registered;
+                            $all_csv_rows[] = $data;
+                            continue;
+                        }
+
+                        $levelDataArray = explode('|', $level_data);
+                        $lid = $levelDataArray[0] ?? '';
+                        $level_data = [
+                            'level_id' => $lid,
+                            'start_time' => $levelDataArray[1] ?? '',
+                            'expire_time' => $levelDataArray[2] ?? '',
+                            'level_slug' => $levelDetails[$lid]['slug'] ?? '',
+                            'label' => $levelDetails[$lid]['label'] ?? '',
+                        ];
+
+                        $data = $the_user_data;
+                        $data[] = $level_data['level_id'];
+                        $data[] = $level_data['label'];
+                        $data[] = $level_data['start_time'];
+                        $data[] = $level_data['expire_time'];
+                        $data[] = $user->roles;
+                        $data[] = $user->user_registered;
+                        $all_csv_rows[] = $data;
+                    }
+                } else {
+                    $data = $the_user_data;
+                    $data[] = '-';
+                    $data[] = '-';
+                    $data[] = '-';
+                    $data[] = '-';
+                    $data[] = $user->roles;
+                    $data[] = $user->user_registered;
+                    $all_csv_rows[] = $data;
+                }
+            }
+            foreach ($all_csv_rows as $row) {
+                fputcsv($file_resource, $row, ",");
             }
             fclose($file_resource);
             return $file_link;
         }
         return 'nill';
     }
-
     public function addScripts()
     {
         if (is_admin()) {
