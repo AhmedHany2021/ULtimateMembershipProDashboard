@@ -29,9 +29,17 @@ $data['subscriptions'] = apply_filters('ihc_admin_filter_user_memberships', $dat
 $taxesOn = ihc_is_magic_feat_active('taxes');
 $userFields = ihc_get_user_reg_fields();
 
-// echo "<pre>";
-// var_dump($userFields);
-// die();
+
+if (!empty($_POST['ihc_update_discount_nonce']) && wp_verify_nonce($_POST['ihc_update_discount_nonce'], 'ihc_update_discount')) {
+    if (current_user_can('manage_options')) {
+        $new_discount = sanitize_text_field($_POST['membership_discount']);
+        update_user_meta($uid, 'membership-discount', $new_discount);
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Discount updated successfully.', 'ihc') . '</p></div>';
+    }
+}
+
+$current_discount = get_user_meta($uid, 'membership-discount', true);
+
 
 wp_enqueue_script('ihc-print-this');
 
@@ -566,6 +574,24 @@ function get_wpml_original_text($translated_text, $context = 'admin_texts_ihc_us
                            target="_blank"><?php esc_html_e('Show more', 'ihc'); ?></a>
                     </div>
                 <?php endif; ?>
+
+                <div class="ihc-admin-user-data-list">
+                    <h2><?php esc_html_e('Update Membership Discount', 'ihc'); ?></h2>
+                    <p><?php esc_html_e('Set or update the discount associated with this user.', 'ihc'); ?></p>
+                    <form method="post">
+                        <?php wp_nonce_field('ihc_update_discount', 'ihc_update_discount_nonce'); ?>
+                        <table class="form-table">
+                            <tr>
+                                <th><label for="membership_discount"><?php esc_html_e('Discount Value', 'ihc'); ?></label></th>
+                                <td>
+                                    <input type="text" name="membership_discount" id="membership_discount" value="<?php echo esc_attr($current_discount); ?>" class="regular-text" />
+                                    <p class="description"><?php esc_html_e('Enter a discount value (e.g. 10% or 20).', 'ihc'); ?></p>
+                                </td>
+                            </tr>
+                        </table>
+                        <p><input type="submit" class="button button-primary" value="<?php esc_attr_e('Update Discount', 'ihc'); ?>"></p>
+                    </form>
+                </div>
 
                 <?php if (get_option('ihc_gifts_enabled') && !empty($data['gifts']) && is_array($data['gifts'])): ?>
                     <div class="ihc-admin-user-data-list">
