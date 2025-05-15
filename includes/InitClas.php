@@ -268,10 +268,15 @@ class InitClas
                     $all_csv_rows[] = $data;
                 }
             }
+
+            $buffer = fopen('php://temp', 'r+');
             foreach ($all_csv_rows as $row) {
-                fputcsv($file_resource, $row, ",");
+                fputcsv($buffer, $row, ",");
             }
-            fclose($file_resource);
+            rewind($buffer);
+            $csvContent = stream_get_contents($buffer);
+            fclose($buffer);
+            fwrite($file_resource, $csvContent);
             return $file_link;
         }
         return 'nill';
